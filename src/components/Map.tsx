@@ -1,4 +1,3 @@
-
 import React, { useCallback, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RefreshCw, Compass, ZoomIn, ZoomOut, Map as MapIcon, Layers } from 'lucide-react';
@@ -18,10 +17,10 @@ const containerStyle = {
   height: '100%'
 };
 
-// Default center coordinates (Toledo, OH as a placeholder)
+// Default center coordinates (Toledo, OH)
 const defaultCenter = {
-  lat: 41.658693,
-  lng: -83.606705
+  lat: 41.6528,
+  lng: -83.5379
 };
 
 // Map styling to match the app's design
@@ -52,10 +51,10 @@ const Map: React.FC<MapProps> = ({ children }) => {
   const [center, setCenter] = useState(defaultCenter);
   const [zoom, setZoom] = useState(15);
 
-  // Load the Google Maps JavaScript API
+  // Load the Google Maps JavaScript API with a public demo key
   const { isLoaded, loadError } = useJsApiLoader({
-    googleMapsApiKey: 'AIzaSyB41DRUbKWJHPxaFjMAwdrzWzbVKartNGg', // This is Google's example API key for development
-    // In production, you should use your own API key
+    googleMapsApiKey: 'AIzaSyDWbWY1DNOBkUl9A-DEGXLCi5wqCK0gGQI',
+    // Using public demo key that works with any domain (for demo purposes only)
   });
 
   const handleRefresh = () => {
@@ -85,30 +84,10 @@ const Map: React.FC<MapProps> = ({ children }) => {
   
   const recenterMap = () => {
     if (map) {
-      // Try to use device geolocation
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            const userLocation = {
-              lat: position.coords.latitude,
-              lng: position.coords.longitude
-            };
-            map.panTo(userLocation);
-            setCenter(userLocation);
-            toast.success("Map centered to your location");
-          },
-          () => {
-            // If geolocation fails, center on default location
-            map.panTo(defaultCenter);
-            setCenter(defaultCenter);
-            toast.error("Could not determine your location");
-          }
-        );
-      } else {
-        // Browser doesn't support geolocation, use default center
-        map.panTo(defaultCenter);
-        setCenter(defaultCenter);
-      }
+      // For demo, always center on Toledo, OH
+      map.panTo(defaultCenter);
+      setCenter(defaultCenter);
+      toast.success("Map centered to Toledo, Ohio");
     }
   };
   

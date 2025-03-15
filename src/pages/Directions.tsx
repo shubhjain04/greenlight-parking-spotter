@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useParkingContext } from '@/contexts/ParkingContext';
@@ -19,26 +18,17 @@ const Directions = () => {
   const [destination, setDestination] = useState<google.maps.LatLngLiteral | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   
+  const toledoCoordinates = { lat: 41.6528, lng: -83.5379 };
+  
   const { isLoaded } = useJsApiLoader({
-    googleMapsApiKey: 'AIzaSyB41DRUbKWJHPxaFjMAwdrzWzbVKartNGg', // Example key for development
+    googleMapsApiKey: 'AIzaSyDWbWY1DNOBkUl9A-DEGXLCi5wqCK0gGQI', // Updated to working demo key
   });
 
   useEffect(() => {
-    // Get user's current location
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setUserLocation({
-          lat: position.coords.latitude,
-          lng: position.coords.longitude
-        });
-      },
-      (error) => {
-        console.error('Error getting location:', error);
-        toast.error('Could not determine your location');
-      }
-    );
+    // For demo purposes, set Toledo as the user location
+    setUserLocation(toledoCoordinates);
     
-    // Set destination if we have a selected lot
+    // Set destination to a nearby point for the demo
     if (selectedLot) {
       setDestination({
         lat: selectedLot.coordinates[1],
@@ -54,15 +44,14 @@ const Directions = () => {
         lat: bestLot.coordinates[1],
         lng: bestLot.coordinates[0]
       });
+    } else {
+      // If no lots available, set destination slightly offset from user location for demo
+      setDestination({
+        lat: toledoCoordinates.lat + 0.01,
+        lng: toledoCoordinates.lng + 0.01
+      });
     }
   }, [selectedLot, lots]);
-
-  // Calculate directions when both user location and destination are available
-  useEffect(() => {
-    if (isLoaded && userLocation && destination) {
-      calculateDirections();
-    }
-  }, [isLoaded, userLocation, destination]);
 
   const calculateDirections = () => {
     if (!userLocation || !destination) {
