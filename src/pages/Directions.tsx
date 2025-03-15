@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, Navigation as NavigationIcon } from 'lucide-react';
 import Map from '@/components/Map';
 import Navigation from '@/components/Navigation';
+import StatusBadge from '@/components/StatusBadge';
 import { GoogleMap, DirectionsService, DirectionsRenderer, useJsApiLoader } from '@react-google-maps/api';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
