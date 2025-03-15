@@ -159,7 +159,7 @@ const ParkingView = () => {
           </div>
         </div>
         
-        {/* Replace the old grid with the new ParkingSpotGrid component */}
+        {/* Use the ParkingSpotGrid component */}
         <ParkingSpotGrid spots={filteredSpots} />
         
         {/* Legend */}
