@@ -8,8 +8,8 @@ interface SearchBarProps {
 }
 
 const SearchBar: React.FC<SearchBarProps> = ({ 
-  placeholder = "Search for locations...",
-  className = ""
+  placeholder = "Search for locations...", 
+  className = "" 
 }) => {
   const { setSearchQuery, searchQuery } = useParkingContext();
   const [isFocused, setIsFocused] = useState(false);
@@ -27,22 +27,20 @@ const SearchBar: React.FC<SearchBarProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setSearchQuery(localValue);
+    setSearchQuery(localValue); // Set the search query in context
   };
 
   const handleClear = () => {
     setLocalValue('');
-    setSearchQuery('');
+    setSearchQuery(''); // Clear search query in context
     if (inputRef.current) {
       inputRef.current.focus();
     }
   };
 
   return (
-    <div 
-      className={`relative w-full max-w-md mx-auto ${className}`}
-    >
-      <form 
+    <div className={`relative w-full max-w-md mx-auto ${className}`}>
+      <form
         onSubmit={handleSubmit}
         className={`flex items-center glassmorphic rounded-full px-4 py-3 transition-all duration-300 ${
           isFocused ? 'ring-2 ring-teal-300 shadow-lg' : 'shadow-subtle'
@@ -62,23 +60,21 @@ const SearchBar: React.FC<SearchBarProps> = ({
         />
         
         {localValue ? (
-          <button 
-            type="button" 
+          <button
+            type="button"
             onClick={handleClear}
             className="flex-shrink-0 p-1 rounded-full text-neutral-500 hover:text-neutral-700 dark:hover:text-white transition-colors"
           >
-            <X size=18 />
+            <X size={18} />
           </button>
         ) : (
-          <button 
-            type="submit" 
+          <button
+            type="submit"
             className="flex-shrink-0 p-1 rounded-full text-neutral-500 hover:text-neutral-700 dark:hover:text-white transition-colors"
           >
-            <Search size=18 />
+            <Search size={18} />
           </button>
         )}
-        
-        <button type="submit" style={{ display: 'none' }} />
       </form>
     </div>
   );
