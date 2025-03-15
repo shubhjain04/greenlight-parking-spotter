@@ -39,7 +39,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
   };
 
   return (
-    <div 
+    <div
       className={`relative w-full max-w-md mx-auto ${className}`}
     >
       <form 
