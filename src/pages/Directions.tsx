@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react'; // CHANGE: Added useCallback
+
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useParkingContext } from '@/contexts/ParkingContext';
 import { Button } from '@/components/ui/button';
@@ -18,67 +19,73 @@ const Directions = () => {
   const [userLocation, setUserLocation] = useState<google.maps.LatLngLiteral | null>(null);
   const [destination, setDestination] = useState<google.maps.LatLngLiteral | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-
+  
   // Use the shared center coordinates
   const toledoCoordinates = DEFAULT_CENTER;
-
+  
   // Use the shared loader options for consistent API key
   const { isLoaded } = useJsApiLoader(LOADER_OPTIONS);
 
-  // CHANGE: Added a guard clause for empty lots
   useEffect(() => {
-    if (!lots.length) return; // Exit if no lots are available
-
     // For demo purposes, set Toledo as the user location
     setUserLocation(toledoCoordinates);
-
-    // Set destination based on selectedLot or the best available lot
+    
+    // Set destination to a nearby point for the demo
     if (selectedLot) {
       setDestination({
         lat: selectedLot.coordinates[1],
-        lng: selectedLot.coordinates[0],
+        lng: selectedLot.coordinates[0]
       });
-    } else {
-      const bestLot = lots.reduce((prev, current) =>
-        prev.availableSpots > current.availableSpots ? prev : current
+    } else if (lots.length > 0) {
+      // If no lot is selected, use the lot with the most available spaces
+      const bestLot = lots.reduce((prev, current) => 
+        (prev.availableSpots > current.availableSpots) ? prev : current
       );
+      
       setDestination({
         lat: bestLot.coordinates[1],
-        lng: bestLot.coordinates[0],
+        lng: bestLot.coordinates[0]
+      });
+    } else {
+      // If no lots available, set destination slightly offset from user location for demo
+      setDestination({
+        lat: toledoCoordinates.lat + 0.01,
+        lng: toledoCoordinates.lng + 0.01
       });
     }
   }, [selectedLot, lots]);
 
-  // CHANGE: Wrapped calculateDirections in useCallback
-  const calculateDirections = useCallback(() => {
+  const calculateDirections = () => {
     if (!userLocation || !destination) {
       toast.error('Origin or destination missing');
       return;
     }
-
+    
     setIsLoading(true);
+    
     const directionsService = new google.maps.DirectionsService();
-
+    
     directionsService.route(
       {
         origin: userLocation,
         destination: destination,
-        travelMode: google.maps.TravelMode.DRIVING,
+        travelMode: google.maps.TravelMode.DRIVING
       },
       (result, status) => {
-        if (status === google.maps.DirectionsStatus.OK && result) {
+        if (status === google.maps.DirectionsStatus.OK) {
           setDirections(result);
+          setIsLoading(false);
         } else {
           toast.error(`Directions request failed: ${status}`);
+          setIsLoading(false);
         }
-        setIsLoading(false);
       }
     );
-  }, [userLocation, destination]);
+  };
 
   const getEstimatedTime = () => {
     if (!directions || !directions.routes[0]) return 'Calculating...';
-
+    
     const route = directions.routes[0];
     const leg = route.legs[0];
     return leg.duration?.text || 'Unknown';
@@ -86,7 +93,7 @@ const Directions = () => {
 
   const getDistance = () => {
     if (!directions || !directions.routes[0]) return 'Calculating...';
-
+    
     const route = directions.routes[0];
     const leg = route.legs[0];
     return leg.distance?.text || 'Unknown';
@@ -108,9 +115,9 @@ const Directions = () => {
                 {
                   featureType: 'poi',
                   elementType: 'labels',
-                  stylers: [{ visibility: 'off' }],
-                },
-              ],
+                  stylers: [{ visibility: 'off' }]
+                }
+              ]
             }}
           >
             {directions && (
@@ -120,16 +127,16 @@ const Directions = () => {
                   polylineOptions: {
                     strokeColor: '#0A9396',
                     strokeWeight: 5,
-                    strokeOpacity: 0.8,
+                    strokeOpacity: 0.8
                   },
-                  suppressMarkers: false,
+                  suppressMarkers: false
                 }}
               />
             )}
           </GoogleMap>
         )}
       </div>
-
+      
       {/* Header */}
       <div className="absolute top-4 left-0 right-0 px-4 z-20">
         <motion.div
@@ -153,7 +160,7 @@ const Directions = () => {
           </div>
         </motion.div>
       </div>
-
+      
       {/* Bottom information card */}
       <div className="absolute bottom-20 left-0 right-0 px-4 z-20">
         <motion.div
@@ -166,12 +173,12 @@ const Directions = () => {
               <h2 className="text-lg font-medium">
                 {selectedLot ? selectedLot.name : 'Best Available Parking'}
               </h2>
-              <StatusBadge
-                type={isLoading ? 'warning' : 'success'}
-                text={isLoading ? 'Calculating route...' : 'Route found'}
+              <StatusBadge 
+                type={isLoading ? "warning" : "success"} 
+                text={isLoading ? "Calculating route..." : "Route found"} 
               />
             </div>
-
+            
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div className="bg-white/50 rounded-lg p-3">
                 <p className="text-xs text-neutral-500">Estimated Time</p>
@@ -182,9 +189,9 @@ const Directions = () => {
                 <p className="text-lg font-medium">{getDistance()}</p>
               </div>
             </div>
-
-            <Button
-              className="w-full"
+            
+            <Button 
+              className="w-full" 
               onClick={calculateDirections}
               disabled={isLoading || !userLocation || !destination}
             >
@@ -194,7 +201,7 @@ const Directions = () => {
           </div>
         </motion.div>
       </div>
-
+      
       {/* Loading overlay */}
       {!isLoaded && (
         <div className="absolute inset-0 z-50 bg-neutral-100 flex flex-col items-center justify-center">
@@ -203,7 +210,7 @@ const Directions = () => {
           <p className="text-neutral-500">Please wait...</p>
         </div>
       )}
-
+      
       {/* Bottom navigation */}
       <Navigation />
     </div>
