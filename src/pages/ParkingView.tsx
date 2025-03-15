@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -6,9 +5,9 @@ import { useParkingContext, ParkingSpot as ParkingSpotType } from '@/contexts/Pa
 import { Button } from '@/components/ui/button';
 import Navigation from '@/components/Navigation';
 import SpotDetails from '@/components/SpotDetails';
-import ParkingSpot from '@/components/ParkingSpot';
 import StatusBadge from '@/components/StatusBadge';
 import { ArrowLeft, Filter, Wifi } from 'lucide-react';
+import ParkingSpotGrid from '@/components/ParkingSpotGrid'; // Import the new component
 
 const ParkingView = () => {
   const { lotId } = useParams<{ lotId: string }>();
@@ -61,10 +60,6 @@ const ParkingView = () => {
   };
   
   if (!lot) return null;
-  
-  // Calculate grid dimensions
-  const rows = Math.ceil(Math.sqrt(lotSpots.length));
-  const cols = Math.ceil(lotSpots.length / rows);
   
   return (
     <div className="relative min-h-screen bg-neutral-50 pb-20">
@@ -164,46 +159,17 @@ const ParkingView = () => {
           </div>
         </div>
         
-        <div 
-          className="bg-neutral-100 dark:bg-neutral-800 rounded-lg p-4 relative max-w-3xl mx-auto"
-          style={{
-            backgroundImage: `url('data:image/svg+xml,%3Csvg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"%3E%3Cpath d="M1 1H19M1 19H19M1 1V19M19 1V19" stroke="%23E5E7EB" stroke-width="0.5"/%3E%3C/svg%3E')`,
-            backgroundSize: '20px 20px',
-          }}
-        >
-          <div 
-            className="grid gap-1"
-            style={{
-              gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
-              gridTemplateRows: `repeat(${rows}, minmax(0, 1fr))`,
-            }}
-          >
-            {filteredSpots.map(spot => (
-              <motion.div
-                key={spot.id}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.3, delay: Math.random() * 0.5 }}
-                className="flex justify-center"
-              >
-                <ParkingSpot 
-                  spot={spot} 
-                  onClick={() => handleSpotClick(spot)}
-                  isSelected={selectedSpot?.id === spot.id}
-                />
-              </motion.div>
-            ))}
-          </div>
-        </div>
+        {/* Replace the old grid with the new ParkingSpotGrid component */}
+        <ParkingSpotGrid spots={filteredSpots} />
         
         {/* Legend */}
         <div className="flex justify-center mt-6 gap-4">
           <div className="flex items-center">
-            <div className="w-3 h-3 rounded-sm bg-available mr-2" />
+            <div className="w-3 h-3 rounded-sm bg-green-500 mr-2" />
             <span className="text-xs text-neutral-600">Available</span>
           </div>
           <div className="flex items-center">
-            <div className="w-3 h-3 rounded-sm bg-occupied mr-2" />
+            <div className="w-3 h-3 rounded-sm bg-red-500 mr-2" />
             <span className="text-xs text-neutral-600">Occupied</span>
           </div>
         </div>
