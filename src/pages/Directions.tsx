@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useParkingContext } from '@/contexts/ParkingContext';
@@ -9,6 +10,7 @@ import StatusBadge from '@/components/StatusBadge';
 import { GoogleMap, DirectionsService, DirectionsRenderer, useJsApiLoader } from '@react-google-maps/api';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { DEFAULT_CENTER, LOADER_OPTIONS } from '@/config/maps';
 
 const Directions = () => {
   const navigate = useNavigate();
@@ -18,11 +20,11 @@ const Directions = () => {
   const [destination, setDestination] = useState<google.maps.LatLngLiteral | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   
-  const toledoCoordinates = { lat: 41.6528, lng: -83.5379 };
+  // Use the shared center coordinates
+  const toledoCoordinates = DEFAULT_CENTER;
   
-  const { isLoaded } = useJsApiLoader({
-    googleMapsApiKey: 'AIzaSyDWbWY1DNOBkUl9A-DEGXLCi5wqCK0gGQI', // Updated to working demo key
-  });
+  // Use the shared loader options for consistent API key
+  const { isLoaded } = useJsApiLoader(LOADER_OPTIONS);
 
   useEffect(() => {
     // For demo purposes, set Toledo as the user location

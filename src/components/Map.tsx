@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import StatusBadge from './StatusBadge';
 import { GoogleMap, useJsApiLoader, Marker, InfoWindow } from '@react-google-maps/api';
 import { toast } from 'sonner';
+import { DEFAULT_CENTER, MAP_STYLES, LOADER_OPTIONS } from '@/config/maps';
 
 interface MapProps {
   children?: React.ReactNode;
@@ -17,30 +18,13 @@ const containerStyle = {
   height: '100%'
 };
 
-// Default center coordinates (Toledo, OH)
-const defaultCenter = {
-  lat: 41.6528,
-  lng: -83.5379
-};
-
 // Map styling to match the app's design
 const mapOptions = {
   disableDefaultUI: true,
   zoomControl: false,
   mapTypeControl: false,
   streetViewControl: false,
-  styles: [
-    {
-      featureType: 'poi',
-      elementType: 'labels',
-      stylers: [{ visibility: 'off' }]
-    },
-    {
-      featureType: 'transit',
-      elementType: 'labels',
-      stylers: [{ visibility: 'off' }]
-    }
-  ]
+  styles: MAP_STYLES
 };
 
 const Map: React.FC<MapProps> = ({ children }) => {
@@ -48,14 +32,11 @@ const Map: React.FC<MapProps> = ({ children }) => {
   const [mapView, setMapView] = useState<'roadmap' | 'satellite'>('roadmap');
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const [selectedMarker, setSelectedMarker] = useState<string | null>(null);
-  const [center, setCenter] = useState(defaultCenter);
+  const [center, setCenter] = useState(DEFAULT_CENTER);
   const [zoom, setZoom] = useState(15);
 
-  // Load the Google Maps JavaScript API with a public demo key
-  const { isLoaded, loadError } = useJsApiLoader({
-    googleMapsApiKey: 'AIzaSyDWbWY1DNOBkUl9A-DEGXLCi5wqCK0gGQI',
-    // Using public demo key that works with any domain (for demo purposes only)
-  });
+  // Load the Google Maps JavaScript API with consistent configuration
+  const { isLoaded, loadError } = useJsApiLoader(LOADER_OPTIONS);
 
   const handleRefresh = () => {
     refreshData();
@@ -85,8 +66,8 @@ const Map: React.FC<MapProps> = ({ children }) => {
   const recenterMap = () => {
     if (map) {
       // For demo, always center on Toledo, OH
-      map.panTo(defaultCenter);
-      setCenter(defaultCenter);
+      map.panTo(DEFAULT_CENTER);
+      setCenter(DEFAULT_CENTER);
       toast.success("Map centered to Toledo, Ohio");
     }
   };
