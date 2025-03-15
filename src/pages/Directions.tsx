@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react'; // CHANGE: Added useCallback
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { useParkingContext } from '@/contexts/ParkingContext';
 import { Button } from '@/components/ui/button';
@@ -9,7 +9,15 @@ import StatusBadge from '@/components/StatusBadge';
 import { GoogleMap, DirectionsService, DirectionsRenderer, useJsApiLoader } from '@react-google-maps/api';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { DEFAULT_CENTER, LOADER_OPTIONS } from '@/config/maps';
+
+// Google Maps API configuration
+const LOADER_OPTIONS = {
+  googleMapsApiKey: 'AIzaSyBHH8XkyThoJi9K5d7zGpUaxn-lEq1oSwU', // Your new API key
+  libraries: ['places'], // Add any additional libraries you need
+};
+
+// Default center coordinates (Toledo, Ohio)
+const DEFAULT_CENTER = { lat: 41.6639, lng: -83.5552 };
 
 const Directions = () => {
   const navigate = useNavigate();
@@ -19,18 +27,15 @@ const Directions = () => {
   const [destination, setDestination] = useState<google.maps.LatLngLiteral | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Use the shared center coordinates
-  const toledoCoordinates = DEFAULT_CENTER;
+  // Load the Google Maps JavaScript API
+  const { isLoaded, loadError } = useJsApiLoader(LOADER_OPTIONS);
 
-  // Use the shared loader options for consistent API key
-  const { isLoaded } = useJsApiLoader(LOADER_OPTIONS);
-
-  // CHANGE: Added a guard clause for empty lots
+  // Set user location and destination
   useEffect(() => {
     if (!lots.length) return; // Exit if no lots are available
 
     // For demo purposes, set Toledo as the user location
-    setUserLocation(toledoCoordinates);
+    setUserLocation(DEFAULT_CENTER);
 
     // Set destination based on selectedLot or the best available lot
     if (selectedLot) {
@@ -49,7 +54,7 @@ const Directions = () => {
     }
   }, [selectedLot, lots]);
 
-  // CHANGE: Wrapped calculateDirections in useCallback
+  // Calculate directions
   const calculateDirections = useCallback(() => {
     if (!userLocation || !destination) {
       toast.error('Origin or destination missing');
@@ -76,6 +81,7 @@ const Directions = () => {
     );
   }, [userLocation, destination]);
 
+  // Get estimated travel time
   const getEstimatedTime = () => {
     if (!directions || !directions.routes[0]) return 'Calculating...';
 
@@ -84,6 +90,7 @@ const Directions = () => {
     return leg.duration?.text || 'Unknown';
   };
 
+  // Get travel distance
   const getDistance = () => {
     if (!directions || !directions.routes[0]) return 'Calculating...';
 
@@ -91,6 +98,21 @@ const Directions = () => {
     const leg = route.legs[0];
     return leg.distance?.text || 'Unknown';
   };
+
+  // Display error message if the map fails to load
+  if (loadError) {
+    return (
+      <div className="flex items-center justify-center h-full bg-neutral-100">
+        <div className="text-center p-5">
+          <h3 className="text-xl font-semibold text-red-500">Error Loading Map</h3>
+          <p className="text-neutral-600 mt-2">There was a problem loading Google Maps</p>
+          <Button variant="default" onClick={() => window.location.reload()} className="mt-4">
+            Reload
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative h-screen w-full overflow-hidden bg-neutral-50">
