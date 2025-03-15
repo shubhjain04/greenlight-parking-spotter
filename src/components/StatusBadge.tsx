@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Clock, MapPin, AlertTriangle } from 'lucide-react';
+import { Clock, MapPin, AlertTriangle, CheckCircle } from 'lucide-react';
 
 type BadgeType = 
   | 'available'
@@ -9,7 +9,8 @@ type BadgeType =
   | 'almost-full'
   | 'notification'
   | 'warning'
-  | 'info';
+  | 'info'
+  | 'success';
 
 interface StatusBadgeProps {
   type: BadgeType;
@@ -39,6 +40,8 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({
         return <MapPin size={14} />;
       case 'warning':
         return <AlertTriangle size={14} />;
+      case 'success':
+        return <CheckCircle size={14} />;
       default:
         return <Clock size={14} />;
     }
@@ -58,6 +61,8 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({
         return 'bg-amber-500 text-white';
       case 'info':
         return 'bg-teal text-white';
+      case 'success':
+        return 'bg-green-500 text-white';
       default:
         return 'bg-neutral-300 text-neutral-800';
     }
