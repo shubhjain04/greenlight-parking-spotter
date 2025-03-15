@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Search, X, MapPin } from 'lucide-react';
 import { useParkingContext } from '@/contexts/ParkingContext';
@@ -68,16 +67,18 @@ const SearchBar: React.FC<SearchBarProps> = ({
             onClick={handleClear}
             className="flex-shrink-0 p-1 rounded-full text-neutral-500 hover:text-neutral-700 dark:hover:text-white transition-colors"
           >
-            <X size={18} />
+            <X size=18 />
           </button>
         ) : (
           <button 
             type="submit" 
             className="flex-shrink-0 p-1 rounded-full text-neutral-500 hover:text-neutral-700 dark:hover:text-white transition-colors"
           >
-            <Search size={18} />
+            <Search size=18 />
           </button>
         )}
+        
+        <button type="submit" style={{ display: 'none' }} />
       </form>
     </div>
   );
