@@ -38,7 +38,7 @@ const Map: React.FC<MapProps> = ({ children }) => {
   // Load the Google Maps JavaScript API with consistent configuration
   const { isLoaded, loadError } = useJsApiLoader(LOADER_OPTIONS);
 
-  // CHANGE: Wrap handleRefresh in useCallback to prevent re-renders
+  // CHANGE: Wrap handleRefresh in useCallback
   const handleRefresh = useCallback(() => {
     refreshData();
     toast.info('Refreshing parking data...');
