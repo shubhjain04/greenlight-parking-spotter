@@ -15,7 +15,7 @@ interface MapProps {
 // Map container style
 const containerStyle = {
   width: '100%',
-  height: '100%'
+  height: '100%',
 };
 
 // Map styling to match the app's design
@@ -24,7 +24,7 @@ const mapOptions = {
   zoomControl: false,
   mapTypeControl: false,
   streetViewControl: false,
-  styles: MAP_STYLES
+  styles: MAP_STYLES,
 };
 
 const Map: React.FC<MapProps> = ({ children }) => {
@@ -38,73 +38,81 @@ const Map: React.FC<MapProps> = ({ children }) => {
   // Load the Google Maps JavaScript API with consistent configuration
   const { isLoaded, loadError } = useJsApiLoader(LOADER_OPTIONS);
 
-  const handleRefresh = () => {
+  // CHANGE: Wrap handleRefresh in useCallback to prevent re-renders
+  const handleRefresh = useCallback(() => {
     refreshData();
-    toast.info("Refreshing parking data...");
-  };
-  
-  const toggleMapView = () => {
-    setMapView(prev => prev === 'roadmap' ? 'satellite' : 'roadmap');
-  };
-  
-  const zoomIn = () => {
+    toast.info('Refreshing parking data...');
+  }, [refreshData]);
+
+  // CHANGE: Wrap toggleMapView in useCallback
+  const toggleMapView = useCallback(() => {
+    setMapView((prev) => (prev === 'roadmap' ? 'satellite' : 'roadmap'));
+  }, []);
+
+  // CHANGE: Wrap zoomIn in useCallback
+  const zoomIn = useCallback(() => {
     if (map) {
       const currentZoom = map.getZoom() || zoom;
       map.setZoom(currentZoom + 1);
       setZoom(currentZoom + 1);
     }
-  };
-  
-  const zoomOut = () => {
+  }, [map, zoom]);
+
+  // CHANGE: Wrap zoomOut in useCallback
+  const zoomOut = useCallback(() => {
     if (map) {
       const currentZoom = map.getZoom() || zoom;
       map.setZoom(Math.max(currentZoom - 1, 10));
       setZoom(Math.max(currentZoom - 1, 10));
     }
-  };
-  
-  const recenterMap = () => {
+  }, [map, zoom]);
+
+  // CHANGE: Wrap recenterMap in useCallback
+  const recenterMap = useCallback(() => {
     if (map) {
-      // For demo, always center on Toledo, OH
       map.panTo(DEFAULT_CENTER);
       setCenter(DEFAULT_CENTER);
-      toast.success("Map centered to Toledo, Ohio");
+      toast.success('Map centered to Toledo, Ohio');
     }
-  };
-  
-  const formatLastUpdated = () => {
+  }, [map]);
+
+  // CHANGE: Wrap formatLastUpdated in useCallback
+  const formatLastUpdated = useCallback(() => {
     if (!lastUpdated) return 'Not updated yet';
     return `Last updated: ${lastUpdated.toLocaleTimeString()}`;
-  };
-  
+  }, [lastUpdated]);
+
+  // CHANGE: Wrap onMapLoad in useCallback
   const onMapLoad = useCallback((map: google.maps.Map) => {
     setMap(map);
   }, []);
 
-  const handleMarkerClick = (lotId: string) => {
-    setSelectedMarker(lotId);
-    const lot = lots.find(l => l.id === lotId);
-    if (lot) {
-      setSelectedLot(lot);
-    }
-  };
-  
+  // CHANGE: Wrap handleMarkerClick in useCallback
+  const handleMarkerClick = useCallback(
+    (lotId: string) => {
+      setSelectedMarker(lotId);
+      const lot = lots.find((l) => l.id === lotId);
+      if (lot) {
+        setSelectedLot(lot);
+      }
+    },
+    [lots, setSelectedLot]
+  );
+
   if (loadError) {
-    return <div className="flex items-center justify-center h-full bg-neutral-100">
-      <div className="text-center p-5">
-        <h3 className="text-xl font-semibold text-red-500">Error Loading Map</h3>
-        <p className="text-neutral-600 mt-2">There was a problem loading Google Maps</p>
-        <Button 
-          variant="default" 
-          onClick={() => window.location.reload()} 
-          className="mt-4"
-        >
-          Reload
-        </Button>
+    return (
+      <div className="flex items-center justify-center h-full bg-neutral-100">
+        <div className="text-center p-5">
+          <h3 className="text-xl font-semibold text-red-500">Error Loading Map</h3>
+          <p className="text-neutral-600 mt-2">There was a problem loading Google Maps</p>
+          <Button variant="default" onClick={() => window.location.reload()} className="mt-4">
+            Reload
+          </Button>
+        </div>
       </div>
-    </div>;
+    );
   }
-  
+
   return (
     <div className="relative h-full w-full overflow-hidden">
       {isLoaded ? (
@@ -115,7 +123,7 @@ const Map: React.FC<MapProps> = ({ children }) => {
             zoom={zoom}
             options={{
               ...mapOptions,
-              mapTypeId: mapView
+              mapTypeId: mapView,
             }}
             onLoad={onMapLoad}
           >
@@ -125,7 +133,7 @@ const Map: React.FC<MapProps> = ({ children }) => {
                 key={lot.id}
                 position={{
                   lat: lot.coordinates[1],
-                  lng: lot.coordinates[0]
+                  lng: lot.coordinates[0],
                 }}
                 onClick={() => handleMarkerClick(lot.id)}
                 icon={{
@@ -149,17 +157,19 @@ const Map: React.FC<MapProps> = ({ children }) => {
             {selectedMarker && (
               <InfoWindow
                 position={{
-                  lat: lots.find(l => l.id === selectedMarker)?.coordinates[1] || 0,
-                  lng: lots.find(l => l.id === selectedMarker)?.coordinates[0] || 0
+                  lat: lots.find((l) => l.id === selectedMarker)?.coordinates[1] || 0,
+                  lng: lots.find((l) => l.id === selectedMarker)?.coordinates[0] || 0,
                 }}
                 onCloseClick={() => setSelectedMarker(null)}
               >
                 <div className="p-2">
-                  <h3 className="font-semibold text-sm">{lots.find(l => l.id === selectedMarker)?.name}</h3>
+                  <h3 className="font-semibold text-sm">{lots.find((l) => l.id === selectedMarker)?.name}</h3>
                   <p className="text-xs mt-1">
-                    Available: <span className="font-semibold text-teal">
-                      {lots.find(l => l.id === selectedMarker)?.availableSpots}
-                    </span> / {lots.find(l => l.id === selectedMarker)?.totalSpots}
+                    Available:{' '}
+                    <span className="font-semibold text-teal">
+                      {lots.find((l) => l.id === selectedMarker)?.availableSpots}
+                    </span>{' '}
+                    / {lots.find((l) => l.id === selectedMarker)?.totalSpots}
                   </p>
                 </div>
               </InfoWindow>
@@ -174,107 +184,85 @@ const Map: React.FC<MapProps> = ({ children }) => {
           <div className="w-16 h-16 rounded-full border-4 border-neutral-200 border-t-teal animate-spin" />
         </div>
       )}
-      
+
       {/* Controls overlay */}
       <div className="absolute top-4 right-4 flex flex-col gap-2 z-20">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.2 }}
-        >
+        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2 }}>
           <Button
             variant="ghost"
             size="icon"
             className="glassmorphic h-10 w-10 rounded-full"
             onClick={toggleMapView}
+            aria-label="Toggle map view"
           >
             <Layers size={18} className="text-neutral-700 dark:text-neutral-300" />
           </Button>
         </motion.div>
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.3 }}
-        >
+        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.3 }}>
           <Button
             variant="ghost"
             size="icon"
             className="glassmorphic h-10 w-10 rounded-full"
             onClick={zoomIn}
+            aria-label="Zoom in"
           >
             <ZoomIn size={18} className="text-neutral-700 dark:text-neutral-300" />
           </Button>
         </motion.div>
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.4 }}
-        >
+        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.4 }}>
           <Button
             variant="ghost"
             size="icon"
             className="glassmorphic h-10 w-10 rounded-full"
             onClick={zoomOut}
+            aria-label="Zoom out"
           >
             <ZoomOut size={18} className="text-neutral-700 dark:text-neutral-300" />
           </Button>
         </motion.div>
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.5 }}
-        >
+        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.5 }}>
           <Button
             variant="ghost"
             size="icon"
             className="glassmorphic h-10 w-10 rounded-full"
             onClick={recenterMap}
+            aria-label="Recenter map"
           >
             <Compass size={18} className="text-neutral-700 dark:text-neutral-300" />
           </Button>
         </motion.div>
       </div>
-      
+
       {/* Floating refresh button */}
       <div className="absolute bottom-20 right-4 z-20">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-        >
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
           <Button
             variant="default"
             size="icon"
             className="glassmorphic h-12 w-12 rounded-full bg-teal text-white"
             onClick={handleRefresh}
             disabled={isLoading}
+            aria-label="Refresh data"
           >
-            <RefreshCw 
-              size={20} 
-              className={`${isLoading ? 'animate-spin' : ''}`} 
-            />
+            <RefreshCw size={20} className={`${isLoading ? 'animate-spin' : ''}`} />
           </Button>
         </motion.div>
       </div>
-      
+
       {/* Last updated indicator */}
       <AnimatePresence>
         {lastUpdated && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 10 }}
             className="absolute bottom-20 left-4 z-20"
           >
-            <StatusBadge
-              type="info"
-              text={formatLastUpdated()}
-              className="glassmorphic"
-            />
+            <StatusBadge type="info" text={formatLastUpdated()} className="glassmorphic" />
           </motion.div>
         )}
       </AnimatePresence>
-      
+
       {/* Loading bar indicator */}
       {isLoading && (
         <div className="absolute top-0 left-0 right-0 z-50">
