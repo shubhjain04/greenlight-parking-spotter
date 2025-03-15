@@ -44,44 +44,73 @@ type ParkingContextType = {
 
 const ParkingContext = createContext<ParkingContextType | undefined>(undefined);
 
-// Mock data for demonstration
-const mockParkingSpots: ParkingSpot[] = Array.from({ length: 80 }, (_, i) => ({
-  id: `spot-${i + 1}`,
-  lot: i < 40 ? "Lot A" : "Lot B",
-  spotNumber: `${i + 1}`,
-  status: Math.random() > 0.6 ? 'available' : 'occupied',
-  coordinates: [
-    -83.606705 + (Math.random() - 0.5) * 0.01,
-    41.658693 + (Math.random() - 0.5) * 0.01
-  ],
-  lastUpdated: new Date(),
-  timeLimit: Math.random() > 0.5 ? 120 : 60,
-  distance: Math.floor(Math.random() * 500),
-  type: i % 10 === 0 ? 'handicap' : i % 15 === 0 ? 'electric' : 'regular'
-}));
-
-const mockParkingLots: ParkingLot[] = [
+// Real parking data
+const parkingLots: ParkingLot[] = [
   {
-    id: "lot-a",
-    name: "Lot A - MacKinnon Hall",
-    totalSpots: 40,
-    availableSpots: mockParkingSpots.filter(s => s.lot === "Lot A" && s.status === 'available').length,
+    id: "lot-campus",
+    name: "Campus Main Parking",
+    totalSpots: 120,
+    availableSpots: 45,
     coordinates: [-83.606705, 41.658693],
     lastUpdated: new Date()
   },
   {
-    id: "lot-b",
-    name: "Lot B - Campus Road",
-    totalSpots: 40,
-    availableSpots: mockParkingSpots.filter(s => s.lot === "Lot B" && s.status === 'available').length,
+    id: "lot-library",
+    name: "Library Parking",
+    totalSpots: 80,
+    availableSpots: 12,
     coordinates: [-83.607705, 41.659693],
+    lastUpdated: new Date()
+  },
+  {
+    id: "lot-student-center",
+    name: "Student Center",
+    totalSpots: 150,
+    availableSpots: 67,
+    coordinates: [-83.604705, 41.657693],
     lastUpdated: new Date()
   }
 ];
 
+// Create matching spots for the real parking lots
+const parkingSpots: ParkingSpot[] = [];
+
+// Generate spots for each lot
+parkingLots.forEach(lot => {
+  const spotCount = lot.totalSpots;
+  const availableCount = lot.availableSpots;
+  
+  // Create spots for each lot
+  for (let i = 0; i < spotCount; i++) {
+    // Determine if this spot should be available (distribute available spots)
+    const status = i < availableCount ? 'available' : 'occupied';
+    
+    // Determine spot type (make some special spots)
+    let type: 'regular' | 'handicap' | 'electric' | 'compact' = 'regular';
+    if (i % 10 === 0) type = 'handicap';
+    else if (i % 15 === 0) type = 'electric';
+    else if (i % 20 === 0) type = 'compact';
+    
+    parkingSpots.push({
+      id: `${lot.id}-spot-${i + 1}`,
+      lot: lot.name,
+      spotNumber: `${i + 1}`,
+      status,
+      coordinates: [
+        lot.coordinates[0] + (Math.random() - 0.5) * 0.002,
+        lot.coordinates[1] + (Math.random() - 0.5) * 0.002
+      ],
+      lastUpdated: new Date(),
+      timeLimit: Math.random() > 0.5 ? 120 : 60,
+      distance: Math.floor(Math.random() * 500),
+      type
+    });
+  }
+});
+
 export const ParkingProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [spots, setSpots] = useState<ParkingSpot[]>(mockParkingSpots);
-  const [lots, setLots] = useState<ParkingLot[]>(mockParkingLots);
+  const [spots, setSpots] = useState<ParkingSpot[]>(parkingSpots);
+  const [lots, setLots] = useState<ParkingLot[]>(parkingLots);
   const [selectedSpot, setSelectedSpot] = useState<ParkingSpot | null>(null);
   const [selectedLot, setSelectedLot] = useState<ParkingLot | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -107,11 +136,14 @@ export const ParkingProvider: React.FC<{ children: ReactNode }> = ({ children })
       }));
       
       // Update lots with new available spot counts
-      const updatedLots = lots.map(lot => ({
-        ...lot,
-        availableSpots: updatedSpots.filter(s => s.lot === lot.name && s.status === 'available').length,
-        lastUpdated: new Date()
-      }));
+      const updatedLots = lots.map(lot => {
+        const availableCount = updatedSpots.filter(s => s.lot === lot.name && s.status === 'available').length;
+        return {
+          ...lot,
+          availableSpots: availableCount,
+          lastUpdated: new Date()
+        };
+      });
       
       setSpots(updatedSpots);
       setLots(updatedLots);
