@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Search, X, MapPin } from 'lucide-react';
 import { useParkingContext } from '@/contexts/ParkingContext';
-import { toast } from 'sonner';
 
 interface SearchBarProps {
   placeholder?: string;
@@ -12,7 +11,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
   placeholder = "Search for locations...",
   className = ""
 }) => {
-  const { setSearchQuery, searchQuery, setMapCenter } = useParkingContext();
+  const { setSearchQuery, searchQuery } = useParkingContext();
   const [isFocused, setIsFocused] = useState(false);
   const [localValue, setLocalValue] = useState(searchQuery);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -26,30 +25,9 @@ const SearchBar: React.FC<SearchBarProps> = ({
     setLocalValue(e.target.value);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!localValue.trim()) return;
-
-    try {
-      // Call the geocoding API
-      const response = await fetch(
-        `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(localValue)}&key=YOUR_GOOGLE_MAPS_API_KEY`
-      );
-      const data = await response.json();
-
-      // Handle the JSON response
-      if (data.status === 'OK' && data.results.length > 0) {
-        const { lat, lng } = data.results[0].geometry.location;
-        setMapCenter({ lat, lng }); // Update the map center
-        setSearchQuery(localValue); // Update the search query
-        toast.success(`Location found: ${data.results[0].formatted_address}`);
-      } else {
-        toast.error('Location not found. Please try again.');
-      }
-    } catch (error) {
-      console.error('Error fetching geocoding data:', error);
-      toast.error('An error occurred. Please try again.');
-    }
+    setSearchQuery(localValue);
   };
 
   const handleClear = () => {
@@ -89,14 +67,14 @@ const SearchBar: React.FC<SearchBarProps> = ({
             onClick={handleClear}
             className="flex-shrink-0 p-1 rounded-full text-neutral-500 hover:text-neutral-700 dark:hover:text-white transition-colors"
           >
-            <X size={18} />
+            <X size=18 />
           </button>
         ) : (
           <button 
             type="submit" 
             className="flex-shrink-0 p-1 rounded-full text-neutral-500 hover:text-neutral-700 dark:hover:text-white transition-colors"
           >
-            <Search size={18} />
+            <Search size=18 />
           </button>
         )}
         
