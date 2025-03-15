@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -27,7 +26,7 @@ const App = () => (
           <AnimatePresence mode="wait">
             <Routes>
               <Route path="/" element={<Index />} />
-              <Route path="/lot/:lotId" element={<ParkingView />} />
+              <Route path="/parking-lot/:id" element={<ParkingView />} />
               <Route path="/directions" element={<Directions />} />
               <Route path="/alerts" element={<Alerts />} />
               <Route path="/profile" element={<Profile />} />
