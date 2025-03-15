@@ -1,16 +1,20 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { RefreshCw, Compass, ZoomIn, ZoomOut, Map as MapIcon, Layers } from 'lucide-react';
+import { RefreshCw, Compass, ZoomIn, ZoomOut, Layers } from 'lucide-react';
 import { useParkingContext } from '@/contexts/ParkingContext';
 import { Button } from '@/components/ui/button';
 import StatusBadge from './StatusBadge';
 import { GoogleMap, useJsApiLoader, Marker, InfoWindow } from '@react-google-maps/api';
 import { toast } from 'sonner';
-import { DEFAULT_CENTER, MAP_STYLES, LOADER_OPTIONS } from '@/config/maps';
 
-interface MapProps {
-  children?: React.ReactNode;
-}
+// Google Maps API configuration
+const LOADER_OPTIONS = {
+  googleMapsApiKey: 'AIzaSyBHH8XkyThoJi9K5d7zGpUaxn-lEq1oSwU', // Your new API key
+  libraries: ['places'], // Add any additional libraries you need
+};
+
+// Default center coordinates (Toledo, Ohio)
+const DEFAULT_CENTER = { lat: 41.6639, lng: -83.5552 };
 
 // Map container style
 const containerStyle = {
@@ -24,32 +28,42 @@ const mapOptions = {
   zoomControl: false,
   mapTypeControl: false,
   streetViewControl: false,
-  styles: MAP_STYLES,
+  styles: [
+    {
+      featureType: 'poi',
+      elementType: 'labels',
+      stylers: [{ visibility: 'off' }],
+    },
+  ],
 };
 
+interface MapProps {
+  children?: React.ReactNode;
+}
+
 const Map: React.FC<MapProps> = ({ children }) => {
-  const { refreshData, lastUpdated, isLoading, lots, spots, selectedLot, setSelectedLot } = useParkingContext();
+  const { refreshData, lastUpdated, isLoading, lots, selectedLot, setSelectedLot } = useParkingContext();
   const [mapView, setMapView] = useState<'roadmap' | 'satellite'>('roadmap');
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const [selectedMarker, setSelectedMarker] = useState<string | null>(null);
   const [center, setCenter] = useState(DEFAULT_CENTER);
   const [zoom, setZoom] = useState(15);
 
-  // Load the Google Maps JavaScript API with consistent configuration
+  // Load the Google Maps JavaScript API
   const { isLoaded, loadError } = useJsApiLoader(LOADER_OPTIONS);
 
-  // CHANGE: Wrap handleRefresh in useCallback
+  // Handle refresh button click
   const handleRefresh = useCallback(() => {
     refreshData();
     toast.info('Refreshing parking data...');
   }, [refreshData]);
 
-  // CHANGE: Wrap toggleMapView in useCallback
+  // Toggle between roadmap and satellite view
   const toggleMapView = useCallback(() => {
     setMapView((prev) => (prev === 'roadmap' ? 'satellite' : 'roadmap'));
   }, []);
 
-  // CHANGE: Wrap zoomIn in useCallback
+  // Zoom in the map
   const zoomIn = useCallback(() => {
     if (map) {
       const currentZoom = map.getZoom() || zoom;
@@ -58,7 +72,7 @@ const Map: React.FC<MapProps> = ({ children }) => {
     }
   }, [map, zoom]);
 
-  // CHANGE: Wrap zoomOut in useCallback
+  // Zoom out the map
   const zoomOut = useCallback(() => {
     if (map) {
       const currentZoom = map.getZoom() || zoom;
@@ -67,7 +81,7 @@ const Map: React.FC<MapProps> = ({ children }) => {
     }
   }, [map, zoom]);
 
-  // CHANGE: Wrap recenterMap in useCallback
+  // Recenter the map to the default location
   const recenterMap = useCallback(() => {
     if (map) {
       map.panTo(DEFAULT_CENTER);
@@ -76,18 +90,18 @@ const Map: React.FC<MapProps> = ({ children }) => {
     }
   }, [map]);
 
-  // CHANGE: Wrap formatLastUpdated in useCallback
+  // Format the last updated timestamp
   const formatLastUpdated = useCallback(() => {
     if (!lastUpdated) return 'Not updated yet';
     return `Last updated: ${lastUpdated.toLocaleTimeString()}`;
   }, [lastUpdated]);
 
-  // CHANGE: Wrap onMapLoad in useCallback
+  // Handle map load event
   const onMapLoad = useCallback((map: google.maps.Map) => {
     setMap(map);
   }, []);
 
-  // CHANGE: Wrap handleMarkerClick in useCallback
+  // Handle marker click event
   const handleMarkerClick = useCallback(
     (lotId: string) => {
       setSelectedMarker(lotId);
@@ -99,6 +113,7 @@ const Map: React.FC<MapProps> = ({ children }) => {
     [lots, setSelectedLot]
   );
 
+  // Display error message if the map fails to load
   if (loadError) {
     return (
       <div className="flex items-center justify-center h-full bg-neutral-100">
