@@ -11,6 +11,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import Index from "./pages/Index";
 import ParkingView from "./pages/ParkingView";
 import NotFound from "./pages/NotFound";
+import Directions from "./pages/Directions";
+import Alerts from "./pages/Alerts";
+import Profile from "./pages/Profile";
 
 const queryClient = new QueryClient();
 
@@ -25,6 +28,9 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/lot/:lotId" element={<ParkingView />} />
+              <Route path="/directions" element={<Directions />} />
+              <Route path="/alerts" element={<Alerts />} />
+              <Route path="/profile" element={<Profile />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </AnimatePresence>

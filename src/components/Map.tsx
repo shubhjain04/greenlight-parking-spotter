@@ -1,37 +1,115 @@
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { RefreshCw, Compass, ZoomIn, ZoomOut, Map as MapIcon } from 'lucide-react';
+import { RefreshCw, Compass, ZoomIn, ZoomOut, Map as MapIcon, Layers } from 'lucide-react';
 import { useParkingContext } from '@/contexts/ParkingContext';
 import { Button } from '@/components/ui/button';
 import StatusBadge from './StatusBadge';
+import { GoogleMap, useJsApiLoader, Marker, InfoWindow } from '@react-google-maps/api';
+import { toast } from 'sonner';
 
 interface MapProps {
   children?: React.ReactNode;
 }
 
-// This is a placeholder for an actual map implementation
-// In a real app, you would integrate with Mapbox, Google Maps, or another map provider
+// Map container style
+const containerStyle = {
+  width: '100%',
+  height: '100%'
+};
+
+// Default center coordinates (Toledo, OH as a placeholder)
+const defaultCenter = {
+  lat: 41.658693,
+  lng: -83.606705
+};
+
+// Map styling to match the app's design
+const mapOptions = {
+  disableDefaultUI: true,
+  zoomControl: false,
+  mapTypeControl: false,
+  streetViewControl: false,
+  styles: [
+    {
+      featureType: 'poi',
+      elementType: 'labels',
+      stylers: [{ visibility: 'off' }]
+    },
+    {
+      featureType: 'transit',
+      elementType: 'labels',
+      stylers: [{ visibility: 'off' }]
+    }
+  ]
+};
+
 const Map: React.FC<MapProps> = ({ children }) => {
-  const { refreshData, lastUpdated, isLoading } = useParkingContext();
-  const mapRef = useRef<HTMLDivElement>(null);
-  const [mapView, setMapView] = useState<'standard' | 'satellite'>('standard');
-  const [zoomLevel, setZoomLevel] = useState(15);
-  
+  const { refreshData, lastUpdated, isLoading, lots, spots, selectedLot, setSelectedLot } = useParkingContext();
+  const [mapView, setMapView] = useState<'roadmap' | 'satellite'>('roadmap');
+  const [map, setMap] = useState<google.maps.Map | null>(null);
+  const [selectedMarker, setSelectedMarker] = useState<string | null>(null);
+  const [center, setCenter] = useState(defaultCenter);
+  const [zoom, setZoom] = useState(15);
+
+  // Load the Google Maps JavaScript API
+  const { isLoaded, loadError } = useJsApiLoader({
+    googleMapsApiKey: 'AIzaSyB41DRUbKWJHPxaFjMAwdrzWzbVKartNGg', // This is Google's example API key for development
+    // In production, you should use your own API key
+  });
+
   const handleRefresh = () => {
     refreshData();
+    toast.info("Refreshing parking data...");
   };
   
   const toggleMapView = () => {
-    setMapView(prev => prev === 'standard' ? 'satellite' : 'standard');
+    setMapView(prev => prev === 'roadmap' ? 'satellite' : 'roadmap');
   };
   
   const zoomIn = () => {
-    setZoomLevel(prev => Math.min(prev + 1, 20));
+    if (map) {
+      const currentZoom = map.getZoom() || zoom;
+      map.setZoom(currentZoom + 1);
+      setZoom(currentZoom + 1);
+    }
   };
   
   const zoomOut = () => {
-    setZoomLevel(prev => Math.max(prev - 1, 10));
+    if (map) {
+      const currentZoom = map.getZoom() || zoom;
+      map.setZoom(Math.max(currentZoom - 1, 10));
+      setZoom(Math.max(currentZoom - 1, 10));
+    }
+  };
+  
+  const recenterMap = () => {
+    if (map) {
+      // Try to use device geolocation
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const userLocation = {
+              lat: position.coords.latitude,
+              lng: position.coords.longitude
+            };
+            map.panTo(userLocation);
+            setCenter(userLocation);
+            toast.success("Map centered to your location");
+          },
+          () => {
+            // If geolocation fails, center on default location
+            map.panTo(defaultCenter);
+            setCenter(defaultCenter);
+            toast.error("Could not determine your location");
+          }
+        );
+      } else {
+        // Browser doesn't support geolocation, use default center
+        map.panTo(defaultCenter);
+        setCenter(defaultCenter);
+      }
+    }
   };
   
   const formatLastUpdated = () => {
@@ -39,26 +117,103 @@ const Map: React.FC<MapProps> = ({ children }) => {
     return `Last updated: ${lastUpdated.toLocaleTimeString()}`;
   };
   
-  return (
-    <div className="relative h-full w-full overflow-hidden" ref={mapRef}>
-      {/* Map background (placeholder) */}
-      <div 
-        className="absolute inset-0 transition-opacity duration-500 z-0"
-        style={{
-          backgroundImage: mapView === 'standard' 
-            ? "url('https://maps.googleapis.com/maps/api/staticmap?center=41.658693,-83.606705&zoom=15&size=800x1200&scale=2&maptype=roadmap&style=feature:poi|visibility:off&key=NO_API_KEY_NEEDED_FOR_PLACEHOLDER')" 
-            : "url('https://maps.googleapis.com/maps/api/staticmap?center=41.658693,-83.606705&zoom=15&size=800x1200&scale=2&maptype=satellite&key=NO_API_KEY_NEEDED_FOR_PLACEHOLDER')",
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          filter: `brightness(${mapView === 'standard' ? '1' : '0.9'})`,
-          transform: `scale(${1 + (zoomLevel - 15) * 0.1})`,
-        }}
-      />
-      
-      {/* Map content */}
-      <div className="absolute inset-0 z-10">
-        {children}
+  const onMapLoad = useCallback((map: google.maps.Map) => {
+    setMap(map);
+  }, []);
+
+  const handleMarkerClick = (lotId: string) => {
+    setSelectedMarker(lotId);
+    const lot = lots.find(l => l.id === lotId);
+    if (lot) {
+      setSelectedLot(lot);
+    }
+  };
+  
+  if (loadError) {
+    return <div className="flex items-center justify-center h-full bg-neutral-100">
+      <div className="text-center p-5">
+        <h3 className="text-xl font-semibold text-red-500">Error Loading Map</h3>
+        <p className="text-neutral-600 mt-2">There was a problem loading Google Maps</p>
+        <Button 
+          variant="default" 
+          onClick={() => window.location.reload()} 
+          className="mt-4"
+        >
+          Reload
+        </Button>
       </div>
+    </div>;
+  }
+  
+  return (
+    <div className="relative h-full w-full overflow-hidden">
+      {isLoaded ? (
+        <div className="absolute inset-0">
+          <GoogleMap
+            mapContainerStyle={containerStyle}
+            center={center}
+            zoom={zoom}
+            options={{
+              ...mapOptions,
+              mapTypeId: mapView
+            }}
+            onLoad={onMapLoad}
+          >
+            {/* Render parking lot markers */}
+            {lots.map((lot) => (
+              <Marker
+                key={lot.id}
+                position={{
+                  lat: lot.coordinates[1],
+                  lng: lot.coordinates[0]
+                }}
+                onClick={() => handleMarkerClick(lot.id)}
+                icon={{
+                  path: google.maps.SymbolPath.CIRCLE,
+                  fillColor: '#0A9396',
+                  fillOpacity: 1,
+                  strokeWeight: 2,
+                  strokeColor: '#ffffff',
+                  scale: 15,
+                }}
+                label={{
+                  text: lot.availableSpots.toString(),
+                  color: '#ffffff',
+                  fontWeight: 'bold',
+                  fontSize: '12px',
+                }}
+              />
+            ))}
+
+            {/* Selected marker info window */}
+            {selectedMarker && (
+              <InfoWindow
+                position={{
+                  lat: lots.find(l => l.id === selectedMarker)?.coordinates[1] || 0,
+                  lng: lots.find(l => l.id === selectedMarker)?.coordinates[0] || 0
+                }}
+                onCloseClick={() => setSelectedMarker(null)}
+              >
+                <div className="p-2">
+                  <h3 className="font-semibold text-sm">{lots.find(l => l.id === selectedMarker)?.name}</h3>
+                  <p className="text-xs mt-1">
+                    Available: <span className="font-semibold text-teal">
+                      {lots.find(l => l.id === selectedMarker)?.availableSpots}
+                    </span> / {lots.find(l => l.id === selectedMarker)?.totalSpots}
+                  </p>
+                </div>
+              </InfoWindow>
+            )}
+
+            {/* Map content passed as children */}
+            {children}
+          </GoogleMap>
+        </div>
+      ) : (
+        <div className="absolute inset-0 flex items-center justify-center bg-neutral-100">
+          <div className="w-16 h-16 rounded-full border-4 border-neutral-200 border-t-teal animate-spin" />
+        </div>
+      )}
       
       {/* Controls overlay */}
       <div className="absolute top-4 right-4 flex flex-col gap-2 z-20">
@@ -73,7 +228,7 @@ const Map: React.FC<MapProps> = ({ children }) => {
             className="glassmorphic h-10 w-10 rounded-full"
             onClick={toggleMapView}
           >
-            <MapIcon size={18} className="text-neutral-700 dark:text-neutral-300" />
+            <Layers size={18} className="text-neutral-700 dark:text-neutral-300" />
           </Button>
         </motion.div>
         <motion.div
@@ -102,6 +257,20 @@ const Map: React.FC<MapProps> = ({ children }) => {
             onClick={zoomOut}
           >
             <ZoomOut size={18} className="text-neutral-700 dark:text-neutral-300" />
+          </Button>
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.5 }}
+        >
+          <Button
+            variant="ghost"
+            size="icon"
+            className="glassmorphic h-10 w-10 rounded-full"
+            onClick={recenterMap}
+          >
+            <Compass size={18} className="text-neutral-700 dark:text-neutral-300" />
           </Button>
         </motion.div>
       </div>
