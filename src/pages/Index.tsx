@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
@@ -9,7 +8,7 @@ import Navigation from '@/components/Navigation';
 import SpotDetails from '@/components/SpotDetails';
 import Map from '@/components/Map';
 import ParkingLotOverview from '@/components/ParkingLotOverview';
-import { Compass, Info, Filter } from 'lucide-react';
+import { Compass } from 'lucide-react';
 
 const Index = () => {
   const navigate = useNavigate();
@@ -24,8 +23,6 @@ const Index = () => {
   } = useParkingContext();
   
   const [isMapLoaded, setIsMapLoaded] = useState(false);
-  const [showLegend, setShowLegend] = useState(false);
-  const [showList, setShowList] = useState(false); // State for toggling list view
   
   // Simulate map loading
   useEffect(() => {
@@ -52,20 +49,10 @@ const Index = () => {
     }
   };
   
-  const toggleLegend = () => {
-    setShowLegend(prev => !prev);
-  };
-  
-  const toggleListView = () => {
-    setShowList(prev => !prev); // Toggle list view
-  };
-  
   return (
     <div className="relative h-screen w-full overflow-hidden bg-neutral-50">
       {/* Map container */}
-      <Map>
-        {/* Removed the floating lot markers from here */}
-      </Map>
+      <Map />
       
       {/* Floating search bar */}
       <div className="absolute top-4 left-0 right-0 px-4 z-20">
@@ -77,55 +64,6 @@ const Index = () => {
           <SearchBar placeholder="Enter any building name" />
         </motion.div>
       </div>
-      
-      {/* Legend toggle button */}
-      <div className="absolute top-20 left-4 z-20">
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-        >
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={toggleLegend}
-            className="glassmorphic h-10 w-10 rounded-full"
-          >
-            <Info size={18} className="text-neutral-700 dark:text-neutral-300" />
-          </Button>
-        </motion.div>
-      </div>
-      
-      {/* Legend panel */}
-      <AnimatePresence>
-        {showLegend && (
-          <motion.div
-            className="absolute top-20 left-16 z-20 glassmorphic rounded-lg p-3 shadow-lg"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.3 }}
-          >
-            <h3 className="text-sm font-medium mb-2">Parking Legend</h3>
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded-sm bg-available" />
-                <span className="text-xs">Available Spot</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded-sm bg-occupied" />
-                <span className="text-xs">Occupied Spot</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-full bg-teal flex items-center justify-center text-white text-xs">
-                  5
-                </div>
-                <span className="text-xs">Available Count</span>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
       
       {/* Parking lot overview cards */}
       <div className="absolute bottom-24 left-0 right-0 px-4 z-20">
@@ -141,51 +79,6 @@ const Index = () => {
           ))}
         </div>
       </div>
-      
-      {/* List view toggle button */}
-      <div className="absolute top-20 right-4 z-20">
-        <motion.div
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-        >
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={toggleListView}
-            className="glassmorphic h-10 w-10 rounded-full"
-          >
-            <Filter size={18} className="text-neutral-700 dark:text-neutral-300" />
-          </Button>
-        </motion.div>
-      </div>
-      
-      {/* List view */}
-      <AnimatePresence>
-        {showList && (
-          <motion.div
-            className="absolute top-24 right-4 z-20 glassmorphic rounded-lg p-4 shadow-lg w-64"
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.3 }}
-          >
-            <h3 className="text-sm font-medium mb-2">Parking Lots</h3>
-            <div className="space-y-2">
-              {lots.map((lot) => (
-                <div
-                  key={lot.id}
-                  className="p-2 bg-white/90 dark:bg-neutral-800/90 rounded-lg cursor-pointer"
-                  onClick={() => handleLotClick(lot.id)}
-                >
-                  <h4 className="text-sm font-medium">{lot.name}</h4>
-                  <p className="text-xs text-neutral-500">{lot.availableSpots} spots available</p>
-                </div>
-              ))}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
       
       {/* Action buttons */}
       <div className="absolute bottom-32 left-1/2 transform -translate-x-1/2 z-20">
