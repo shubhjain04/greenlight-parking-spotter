@@ -1,11 +1,10 @@
-
 import React, { useCallback, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RefreshCw, Compass, ZoomIn, ZoomOut, Layers } from 'lucide-react';
 import { useParkingContext } from '@/contexts/ParkingContext';
 import { Button } from '@/components/ui/button';
 import StatusBadge from './StatusBadge';
-import { GoogleMap, useJsApiLoader, Marker, InfoWindow } from '@react-google-maps/api';
+import { GoogleMap, useJsApiLoader, Marker, InfoWindow, Polygon } from '@react-google-maps/api';
 import { toast } from 'sonner';
 
 // Google Maps API configuration
@@ -154,7 +153,7 @@ const Map: React.FC<MapProps> = ({ children }) => {
                 onClick={() => handleMarkerClick(lot.id)}
                 icon={{
                   path: google.maps.SymbolPath.CIRCLE,
-                  fillColor: '#0A9396',
+                  fillColor: lot.availableSpots > 0 ? '#0A9396' : '#FF6B6B', // Green for available, red for full
                   fillOpacity: 1,
                   strokeWeight: 2,
                   strokeColor: '#ffffff',
@@ -190,8 +189,6 @@ const Map: React.FC<MapProps> = ({ children }) => {
                 </div>
               </InfoWindow>
             )}
-
-            {/* No more children rendering that had the floating parking lot tags */}
           </GoogleMap>
         </div>
       ) : (
