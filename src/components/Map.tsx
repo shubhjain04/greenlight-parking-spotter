@@ -168,6 +168,22 @@ const Map: React.FC<MapProps> = ({ children }) => {
               />
             ))}
 
+            {/* Render parking lot polygons */}
+            {lots.map((lot) => (
+              lot.polygon && (
+                <Polygon
+                  key={lot.id}
+                  paths={lot.polygon.map(([lng, lat]) => ({ lat, lng }))}
+                  options={{
+                    fillColor: lot.availableSpots > 0 ? '#0A939680' : '#FF6B6B80', // Semi-transparent green/red
+                    fillOpacity: 0.5,
+                    strokeColor: lot.availableSpots > 0 ? '#0A9396' : '#FF6B6B',
+                    strokeWeight: 2,
+                  }}
+                />
+              )
+            ))}
+
             {/* Selected marker info window */}
             {selectedMarker && (
               <InfoWindow
