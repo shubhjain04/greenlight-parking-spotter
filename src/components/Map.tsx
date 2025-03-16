@@ -1,3 +1,4 @@
+
 import React, { useCallback, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RefreshCw, Compass, ZoomIn, ZoomOut, Layers } from 'lucide-react';
@@ -10,7 +11,7 @@ import { toast } from 'sonner';
 // Google Maps API configuration
 const LOADER_OPTIONS = {
   googleMapsApiKey: 'AIzaSyBHH8XkyThoJi9K5d7zGpUaxn-lEq1oSwU', // Your new API key
-  libraries: ['places'], // Add any additional libraries you need
+  libraries: ['places'] as ['places'], // Correctly typed libraries array
 };
 
 // Default center coordinates (Toledo, Ohio)
@@ -190,8 +191,7 @@ const Map: React.FC<MapProps> = ({ children }) => {
               </InfoWindow>
             )}
 
-            {/* Map content passed as children */}
-            {children}
+            {/* No more children rendering that had the floating parking lot tags */}
           </GoogleMap>
         </div>
       ) : (

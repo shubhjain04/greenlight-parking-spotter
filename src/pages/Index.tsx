@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
@@ -24,7 +25,7 @@ const Index = () => {
   
   const [isMapLoaded, setIsMapLoaded] = useState(false);
   const [showLegend, setShowLegend] = useState(false);
-  const [showList, setShowList] = useState(false); // New state for toggling list view
+  const [showList, setShowList] = useState(false); // State for toggling list view
   
   // Simulate map loading
   useEffect(() => {
@@ -63,37 +64,7 @@ const Index = () => {
     <div className="relative h-screen w-full overflow-hidden bg-neutral-50">
       {/* Map container */}
       <Map>
-        {isMapLoaded && (
-          <>
-            {/* Lot markers */}
-            {lots.map((lot) => (
-              <motion.div
-                key={lot.id}
-                className="absolute"
-                style={{
-                  // Random positions for this demo - in a real app, use actual coordinates
-                  left: `${30 + Math.random() * 40}%`,
-                  top: `${20 + Math.random() * 40}%`
-                }}
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: Math.random() * 0.5 }}
-              >
-                <div 
-                  className="relative cursor-pointer"
-                  onClick={() => handleLotClick(lot.id)}
-                >
-                  <div className="h-12 w-12 rounded-full bg-teal text-white flex items-center justify-center shadow-md">
-                    <div className="text-sm font-medium">{lot.availableSpots}</div>
-                  </div>
-                  <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 whitespace-nowrap bg-white/90 dark:bg-neutral-800/90 px-2 py-0.5 rounded text-xs shadow-sm">
-                    {lot.name}
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </>
-        )}
+        {/* Removed the floating lot markers from here */}
       </Map>
       
       {/* Floating search bar */}

@@ -29,5 +29,5 @@ export const MAP_STYLES = [
 // Loader options for consistent initialization across components
 export const LOADER_OPTIONS = {
   googleMapsApiKey: GOOGLE_MAPS_API_KEY,
-  // Libraries and other options can be added here
+  libraries: ['places'] as ['places'], // Explicitly type as a tuple of allowed libraries
 };
