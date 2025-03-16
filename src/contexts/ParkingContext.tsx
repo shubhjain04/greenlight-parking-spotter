@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { toast } from "sonner";
 
@@ -20,6 +19,7 @@ export type ParkingLot = {
   totalSpots: number;
   availableSpots: number;
   coordinates: [number, number];
+  polygon?: Array<[number, number]>; // Polygon coordinates for the lot area
   lastUpdated: Date;
 };
 
@@ -67,6 +67,12 @@ const mockParkingLots: ParkingLot[] = [
     totalSpots: 40,
     availableSpots: mockParkingSpots.filter(s => s.lot === "Lot A" && s.status === 'available').length,
     coordinates: [-83.606705, 41.658693],
+    polygon: [
+      [-83.607, 41.659],
+      [-83.606, 41.659],
+      [-83.606, 41.658],
+      [-83.607, 41.658],
+    ],
     lastUpdated: new Date()
   },
   {
@@ -75,6 +81,12 @@ const mockParkingLots: ParkingLot[] = [
     totalSpots: 40,
     availableSpots: mockParkingSpots.filter(s => s.lot === "Lot B" && s.status === 'available').length,
     coordinates: [-83.607705, 41.659693],
+    polygon: [
+      [-83.608, 41.660],
+      [-83.607, 41.660],
+      [-83.607, 41.659],
+      [-83.608, 41.659],
+    ],
     lastUpdated: new Date()
   }
 ];
