@@ -1,101 +1,3 @@
-import React, { createContext, useState, useContext } from 'react';
-
-interface ParkingContextType {
-  searchQuery: string;
-  setSearchQuery: (query: string) => void;
-}
-
-const ParkingContext = createContext<ParkingContextType | undefined>(undefined);
-
-export const useParkingContext = () => {
-  const context = useContext(ParkingContext);
-  if (!context) {
-    throw new Error('useParkingContext must be used within a ParkingProvider');
-  }
-  return context;
-};import React, { useState, useRef, useEffect } from 'react';
-import { Search, X, MapPin } from 'lucide-react';
-import { useParkingContext } from '@/contexts/ParkingContext';
-
-interface SearchBarProps {
-  placeholder?: string;
-  className?: string;
-}
-
-const SearchBar: React.FC<SearchBarProps> = ({ 
-  placeholder = "Search for locations...", 
-  className = "" 
-}) => {
-  const { setSearchQuery, searchQuery } = useParkingContext();
-  const [isFocused, setIsFocused] = useState(false);
-  const [localValue, setLocalValue] = useState(searchQuery);
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  // Update local value when search query changes
-  useEffect(() => {
-    setLocalValue(searchQuery);
-  }, [searchQuery]);
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setLocalValue(e.target.value);
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setSearchQuery(localValue); // Set the search query in context
-  };
-
-  const handleClear = () => {
-    setLocalValue('');
-    setSearchQuery(''); // Clear search query in context
-    if (inputRef.current) {
-      inputRef.current.focus();
-    }
-  };
-
-  return (
-    <div className={`relative w-full max-w-md mx-auto ${className}`}>
-      <form
-        onSubmit={handleSubmit}
-        className={`flex items-center glassmorphic rounded-full px-4 py-3 transition-all duration-300 ${
-          isFocused ? 'ring-2 ring-teal-300 shadow-lg' : 'shadow-subtle'
-        }`}
-      >
-        <MapPin size={18} className="text-teal flex-shrink-0" />
-        
-        <input
-          ref={inputRef}
-          type="text"
-          placeholder={placeholder}
-          value={localValue}
-          onChange={handleInputChange}
-          onFocus={() => setIsFocused(true)}
-          onBlur={() => setIsFocused(false)}
-          className="flex-1 bg-transparent border-none outline-none px-3 text-neutral-800 dark:text-white placeholder-neutral-500"
-        />
-        
-        {localValue ? (
-          <button
-            type="button"
-            onClick={handleClear}
-            className="flex-shrink-0 p-1 rounded-full text-neutral-500 hover:text-neutral-700 dark:hover:text-white transition-colors"
-          >
-            <X size={18} />
-          </button>
-        ) : (
-          <button
-            type="submit"
-            className="flex-shrink-0 p-1 rounded-full text-neutral-500 hover:text-neutral-700 dark:hover:text-white transition-colors"
-          >
-            <Search size={18} />
-          </button>
-        )}
-      </form>
-    </div>
-  );
-};
-
-export default SearchBar;
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { toast } from "sonner";
@@ -142,73 +44,44 @@ type ParkingContextType = {
 
 const ParkingContext = createContext<ParkingContextType | undefined>(undefined);
 
-// Real parking data
-const parkingLots: ParkingLot[] = [
+// Mock data for demonstration
+const mockParkingSpots: ParkingSpot[] = Array.from({ length: 80 }, (_, i) => ({
+  id: `spot-${i + 1}`,
+  lot: i < 40 ? "Lot A" : "Lot B",
+  spotNumber: `${i + 1}`,
+  status: Math.random() > 0.6 ? 'available' : 'occupied',
+  coordinates: [
+    -83.606705 + (Math.random() - 0.5) * 0.01,
+    41.658693 + (Math.random() - 0.5) * 0.01
+  ],
+  lastUpdated: new Date(),
+  timeLimit: Math.random() > 0.5 ? 120 : 60,
+  distance: Math.floor(Math.random() * 500),
+  type: i % 10 === 0 ? 'handicap' : i % 15 === 0 ? 'electric' : 'regular'
+}));
+
+const mockParkingLots: ParkingLot[] = [
   {
-    id: "lot-campus",
-    name: "Campus Main Parking",
-    totalSpots: 120,
-    availableSpots: 45,
+    id: "lot-a",
+    name: "Lot A - MacKinnon Hall",
+    totalSpots: 40,
+    availableSpots: mockParkingSpots.filter(s => s.lot === "Lot A" && s.status === 'available').length,
     coordinates: [-83.606705, 41.658693],
     lastUpdated: new Date()
   },
   {
-    id: "lot-library",
-    name: "Library Parking",
-    totalSpots: 80,
-    availableSpots: 12,
+    id: "lot-b",
+    name: "Lot B - Campus Road",
+    totalSpots: 40,
+    availableSpots: mockParkingSpots.filter(s => s.lot === "Lot B" && s.status === 'available').length,
     coordinates: [-83.607705, 41.659693],
-    lastUpdated: new Date()
-  },
-  {
-    id: "lot-student-center",
-    name: "Student Center",
-    totalSpots: 150,
-    availableSpots: 67,
-    coordinates: [-83.604705, 41.657693],
     lastUpdated: new Date()
   }
 ];
 
-// Create matching spots for the real parking lots
-const parkingSpots: ParkingSpot[] = [];
-
-// Generate spots for each lot
-parkingLots.forEach(lot => {
-  const spotCount = lot.totalSpots;
-  const availableCount = lot.availableSpots;
-  
-  // Create spots for each lot
-  for (let i = 0; i < spotCount; i++) {
-    // Determine if this spot should be available (distribute available spots)
-    const status = i < availableCount ? 'available' : 'occupied';
-    
-    // Determine spot type (make some special spots)
-    let type: 'regular' | 'handicap' | 'electric' | 'compact' = 'regular';
-    if (i % 10 === 0) type = 'handicap';
-    else if (i % 15 === 0) type = 'electric';
-    else if (i % 20 === 0) type = 'compact';
-    
-    parkingSpots.push({
-      id: `${lot.id}-spot-${i + 1}`,
-      lot: lot.name,
-      spotNumber: `${i + 1}`,
-      status,
-      coordinates: [
-        lot.coordinates[0] + (Math.random() - 0.5) * 0.002,
-        lot.coordinates[1] + (Math.random() - 0.5) * 0.002
-      ],
-      lastUpdated: new Date(),
-      timeLimit: Math.random() > 0.5 ? 120 : 60,
-      distance: Math.floor(Math.random() * 500),
-      type
-    });
-  }
-});
-
 export const ParkingProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [spots, setSpots] = useState<ParkingSpot[]>(parkingSpots);
-  const [lots, setLots] = useState<ParkingLot[]>(parkingLots);
+  const [spots, setSpots] = useState<ParkingSpot[]>(mockParkingSpots);
+  const [lots, setLots] = useState<ParkingLot[]>(mockParkingLots);
   const [selectedSpot, setSelectedSpot] = useState<ParkingSpot | null>(null);
   const [selectedLot, setSelectedLot] = useState<ParkingLot | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -234,14 +107,11 @@ export const ParkingProvider: React.FC<{ children: ReactNode }> = ({ children })
       }));
       
       // Update lots with new available spot counts
-      const updatedLots = lots.map(lot => {
-        const availableCount = updatedSpots.filter(s => s.lot === lot.name && s.status === 'available').length;
-        return {
-          ...lot,
-          availableSpots: availableCount,
-          lastUpdated: new Date()
-        };
-      });
+      const updatedLots = lots.map(lot => ({
+        ...lot,
+        availableSpots: updatedSpots.filter(s => s.lot === lot.name && s.status === 'available').length,
+        lastUpdated: new Date()
+      }));
       
       setSpots(updatedSpots);
       setLots(updatedLots);
@@ -402,15 +272,4 @@ export const useParkingContext = () => {
     throw new Error('useParkingContext must be used within a ParkingProvider');
   }
   return context;
-};
-
-
-export const ParkingProvider: React.FC = ({ children }) => {
-  const [searchQuery, setSearchQuery] = useState<string>('');
-
-  return (
-    <ParkingContext.Provider value={{ searchQuery, setSearchQuery }}>
-      {children}
-    </ParkingContext.Provider>
-  );
 };
