@@ -1,4 +1,3 @@
-
 /**
  * Google Maps configuration
  */
